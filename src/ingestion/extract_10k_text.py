@@ -31,21 +31,24 @@ def extract_text(html: str) -> str:
 
 
 if __name__ == "__main__":
-    ticker = "AAPL"
+    tickers = ["AAPL","MSFT","TSLA"]
 
-    print(f"Getting latest 10-K URL for {ticker}...")
-    doc_url = get_latest_10k_url(ticker)
-    print(f"URL: {doc_url}")
+    for ticker in tickers:
+        print(f"\n{'='*50}")
+        print(f"Getting latest 10-K URL for {ticker}...")
+        doc_url = get_latest_10k_url(ticker)
+        print(f"URL: {doc_url}")
+        print(f"{'='*50}")
 
-    print("\nDownloading actual document (this may take a few seconds, it's a large file)...")
-    html_content = fetch_document(doc_url)
+        print("\nDownloading actual document (this may take a few seconds, it's a large file)...")
+        html_content = fetch_document(doc_url)
 
-    print(f"Raw HTML size: {len(html_content):,} characters")
+        print(f"Raw HTML size: {len(html_content):,} characters")
 
-    print("\nExtracting text...")
-    clean_text = extract_text(html_content)
+        print("\nExtracting text...")
+        clean_text = extract_text(html_content)
 
-    print(f"Extracted text size: {len(clean_text):,} characters")
+        print(f"Extracted text size: {len(clean_text):,} characters")
 
-    print("\n--- FIRST 1500 CHARACTERS ---\n")
-    print(clean_text[:1500])
+        print("\n--- FIRST 1500 CHARACTERS ---\n")
+        print(clean_text[:1500])
