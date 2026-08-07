@@ -26,28 +26,48 @@ def get_embedding(text: str) -> list:
 
 
 if __name__ == "__main__":
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chunking'))
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'ingestion'))
+    if __name__ == "__main__":
+        import time
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chunking'))
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'ingestion'))
 
-    from chunker import chunk_document
-    from extract_10k_text import fetch_document, extract_text
-    from ticker_to_10k import get_latest_10k_url
+        from chunker import chunk_document
+        from extract_10k_text import fetch_document, extract_text
+        from ticker_to_10k import get_latest_10k_url
 
-    ticker = "AAPL"
-    url = get_latest_10k_url(ticker)
-    html = fetch_document(url)
-    clean_text = extract_text(html)
-    chunks = chunk_document(clean_text, company=ticker, source_url=url)
+        ticker = "AAPL"
+        url = get_latest_10k_url(ticker)
+        html = fetch_document(url)
+        clean_text = extract_text(html)
+        chunks = chunk_document(clean_text, company=ticker, source_url=url)
 
-    print(f"Total chunks available: {len(chunks)}")
+        print(f"Total chunks to embed: {len(chunks)}")
+        print("\nEmbedding all chunks...")
 
-    first_chunk = chunks[0]
-    print(f"\nChunk preview: {first_chunk['chunk_text'][:100]}...")
+        start = time.time()
+        embedded_chunks = []
 
-    print("\nGenerating embedding for first chunk...")
-    embedding = get_embedding(first_chunk['chunk_text'])
+        for i, chunk in enumerate(chunks):
+            embedding = get_embedding(chunk['chunk_text'])
+            embedded_chunks.append({
+                **chunk,           # all existing metadata (company, section, source_url, chunk_index)
+                "embedding": embedding  # add the embedding vector
+            })
 
-    print(f"\nEmbedding generated successfully!")
-    print(f"Embedding dimensions: {len(embedding)}")
-    print(f"First 10 values: {embedding[:10]}")
+            # Show progress every 20 chunks
+            if (i + 1) % 20 == 0:
+                print(f"Progress: {i + 1}/{len(chunks)} chunks embedded")
+
+        elapsed = time.time() - start
+
+        print(f"\n All {len(embedded_chunks)} chunks embedded successfully!")
+        print(f"Time taken: {elapsed:.1f} seconds")
+        print(f"Embedding dimensions: {len(embedded_chunks[0]['embedding'])}")
+        print(f"\nSample chunk metadata:")
+        sample = embedded_chunks[50]
+        print(f"  Company: {sample['company']}")
+        print(f"  Section: {sample['section']}")
+        print(f"  Chunk index: {sample['chunk_index']}")
+        print(f"  Text preview: {sample['chunk_text'][:100]}...")
+        print(f"  Embedding (first 5 values): {sample['embedding'][:5]}")
     
