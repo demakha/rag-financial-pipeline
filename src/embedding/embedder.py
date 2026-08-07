@@ -1,31 +1,31 @@
 """
-Generate embeddings for text chunks using OpenAI's embeddings API.
+Generate embeddings for text chunks using sentence-transformers (free, local).
+No API key or payment required.
 """
 
 import os
-from dotenv import load_dotenv
-from openai import OpenAI
+import sys
 
-# Load environment variables from .env file
-load_dotenv()
+_model = None
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def get_model():
+    """Lazy-load the model so it only downloads/loads when actually needed."""
+    global _model
+    if _model is None:
+        from sentence_transformers import SentenceTransformer
+        print("Loading local embedding model...")
+        _model = SentenceTransformer('all-MiniLM-L6-v2')
+    return _model
 
-EMBEDDING_MODEL = "text-embedding-3-small"  # cheap, good quality, 1536 dimensions
 
-
-def get_embedding(text: str) -> list[float]:
+def get_embedding(text: str) -> list:
     """Convert a piece of text into an embedding vector."""
-    response = client.embeddings.create(
-        model=EMBEDDING_MODEL,
-        input=text
-    )
-    return response.data[0].embedding
+    model = get_model()
+    embedding = model.encode(text)
+    return embedding.tolist()
 
 
 if __name__ == "__main__":
-    import sys
-
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chunking'))
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'ingestion'))
 
@@ -41,13 +41,13 @@ if __name__ == "__main__":
 
     print(f"Total chunks available: {len(chunks)}")
 
-    # Just test on the FIRST chunk for now - don't embed all 188 yet, that costs money each run
     first_chunk = chunks[0]
-    print(f"\nGetting embedding for first chunk...")
-    print(f"Chunk text preview: {first_chunk['chunk_text'][:100]}...")
+    print(f"\nChunk preview: {first_chunk['chunk_text'][:100]}...")
 
+    print("\nGenerating embedding for first chunk...")
     embedding = get_embedding(first_chunk['chunk_text'])
 
     print(f"\nEmbedding generated successfully!")
-    print(f"Embedding length (dimensions): {len(embedding)}")
-    print(f"First 10 numbers of the embedding: {embedding[:10]}")
+    print(f"Embedding dimensions: {len(embedding)}")
+    print(f"First 10 values: {embedding[:10]}")
+    
