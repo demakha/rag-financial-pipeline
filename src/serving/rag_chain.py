@@ -22,7 +22,7 @@ client = OpenAI(
 )
 
 
-def generate_answer(question: str, top_k: int = 3) -> dict:
+def generate_answer(question: str, top_k: int = 5) -> dict:
     """
     Full RAG pipeline:
     1. Retrieve relevant chunks for the question
@@ -86,8 +86,9 @@ if __name__ == "__main__":
     # Test with real questions about Apple's 10-K
     questions = [
         "What are Apple's main business risks?",
-        "What products does Apple sell?",
-        "How does Apple generate revenue?"
+        "What products and services does Apple offer?", 
+        "How does Apple generate revenue?",
+        "What is Apple's iPhone revenue in 2025?"
     ]
 
     for question in questions:
